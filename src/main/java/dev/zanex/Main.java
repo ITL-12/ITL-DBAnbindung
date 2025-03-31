@@ -28,7 +28,6 @@ public class Main extends JFrame {
     private JTextArea queryArea;
     private JButton executeButton;
     private JTable resultTable;
-    private JScrollPane tableScrollPane;
     private JLabel statusLabel;
     private JLabel rowsLabel;
 
@@ -37,6 +36,8 @@ public class Main extends JFrame {
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setAlwaysOnTop(true);
+        setResizable(false);
 
         // Create main panel with border layout
         JPanel mainPanel = new JPanel(new BorderLayout(5, 5));
@@ -64,20 +65,26 @@ public class Main extends JFrame {
 
     private JPanel createConnectionPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Database Connection"));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Database Connection"),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
         // Host
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
         panel.add(new JLabel("Host:"), gbc);
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.7;
         hostField = new JTextField("localhost", 20);
         panel.add(hostField, gbc);
 
@@ -102,7 +109,7 @@ public class Main extends JFrame {
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.7;
         databaseField = new JTextField("test", 20);
         panel.add(databaseField, gbc);
 
@@ -115,7 +122,7 @@ public class Main extends JFrame {
 
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.7;
         usernameField = new JTextField("root", 20);
         panel.add(usernameField, gbc);
 
@@ -132,7 +139,7 @@ public class Main extends JFrame {
         panel.add(passwordField, gbc);
 
         // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
 
         connectButton = new JButton("Connect");
         connectButton.addActionListener(e -> connectToDatabase());
@@ -153,27 +160,41 @@ public class Main extends JFrame {
 
     private JPanel createQueryPanel() {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
-        panel.setBorder(BorderFactory.createTitledBorder("Query Execution"));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder("Query Execution"),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
 
-        // Query text area
+        // Query area with panel
+        JPanel queryPanel = new JPanel(new BorderLayout(5, 5));
         queryArea = new JTextArea("SELECT * FROM information_schema.tables LIMIT 10;");
         queryArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
+        queryArea.setLineWrap(true);
+        queryArea.setWrapStyleWord(true);
+
         JScrollPane queryScroll = new JScrollPane(queryArea);
-        queryScroll.setPreferredSize(new Dimension(600, 100));
-        panel.add(queryScroll, BorderLayout.NORTH);
+        queryScroll.setPreferredSize(new Dimension(600, 80));
+        queryPanel.add(queryScroll, BorderLayout.CENTER);
 
         // Execute button
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         executeButton = new JButton("Execute Query");
         executeButton.addActionListener(e -> executeQuery());
         buttonPanel.add(executeButton);
-        panel.add(buttonPanel, BorderLayout.CENTER);
+        queryPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Results table
+        panel.add(queryPanel, BorderLayout.NORTH);
+
+        // Results table in a panel
+        JPanel resultsPanel = new JPanel(new BorderLayout());
         resultTable = new JTable();
         resultTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        tableScrollPane = new JScrollPane(resultTable);
-        panel.add(tableScrollPane, BorderLayout.SOUTH);
+        resultTable.setFillsViewportHeight(true);
+
+        JScrollPane tableScrollPane = new JScrollPane(resultTable);
+        resultsPanel.add(tableScrollPane, BorderLayout.CENTER);
+
+        panel.add(resultsPanel, BorderLayout.CENTER);
 
         return panel;
     }
@@ -181,12 +202,15 @@ public class Main extends JFrame {
     private JPanel createStatusPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        panel.setBackground(new Color(240, 240, 240));
 
         statusLabel = new JLabel("Not connected");
         statusLabel.setForeground(Color.RED);
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
         panel.add(statusLabel, BorderLayout.WEST);
 
         rowsLabel = new JLabel("");
+        rowsLabel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
         panel.add(rowsLabel, BorderLayout.EAST);
 
         return panel;
